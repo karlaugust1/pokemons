@@ -29,8 +29,7 @@
 
 <script>
 import PokemonCard from '@/components/PokemonCard.vue'
-import PokemonService from '@/services/PokemonService.js'
-import { computed, reactive, toRefs } from 'vue'
+import usePokemonsSpace from '@/views/pokemon/use/pokemons-space'
 
 export default {
   name: 'PokemonList',
@@ -38,6 +37,25 @@ export default {
   components: {
     PokemonCard
   },
+  setup(props) {
+    const {
+      pokemons,
+      totalPokemons,
+      hasNextPage,
+      getPokemons
+    } = usePokemonsSpace(props.page)
+    return { pokemons, totalPokemons, hasNextPage, getPokemons }
+  },
+  beforeRouteEnter(routeTo, routeFrom, next) {
+    next(comp => {
+      console.log(comp)
+      comp.getPokemons(parseInt(routeTo.query.page) || 0)
+    }).catch(error => console.log('error', error))
+  },
+  beforeRouteUpdate(routeTo) {
+    this.getPokemons(parseInt(routeTo.query.page) * 10 || 0)
+  }
+
   // Composition API - Syntax version 1
   // setup(props) {
   //   const pokemons = ref(null)
@@ -73,39 +91,39 @@ export default {
   // }
 
   // Composition API - Syntax version 2
-  setup(props) {
-    const data = reactive({
-      pokemons: null,
-      totalPokemons: 0,
-      hasNextPage: computed(() => {
-        var totalPages = Math.ceil(data.totalPokemons / 2)
+  // setup(props) {
+  //   const data = reactive({
+  //     pokemons: null,
+  //     totalPokemons: 0,
+  //     hasNextPage: computed(() => {
+  //       var totalPages = Math.ceil(data.totalPokemons / 2)
 
-        return props.page < totalPages
-      })
-    })
+  //       return props.page < totalPages
+  //     })
+  //   })
 
-    function getPokemons(page) {
-      PokemonService.getPokemons(20, page).then(response => {
-        console.log(response)
-        data.pokemons = response.data.results.map(pokemon => ({
-          id: pokemon.url.split('pokemon')[1].replaceAll('/', ''),
-          name: pokemon.name,
-          url: pokemon.url
-        }))
-        data.totalPokemons = response.data.count
-      })
-    }
+  //   function getPokemons(page) {
+  //     PokemonService.getPokemons(20, page).then(response => {
+  //       console.log(response)
+  //       data.pokemons = response.data.results.map(pokemon => ({
+  //         id: pokemon.url.split('pokemon')[1].replaceAll('/', ''),
+  //         name: pokemon.name,
+  //         url: pokemon.url
+  //       }))
+  //       data.totalPokemons = response.data.count
+  //     })
+  //   }
 
-    return { ...toRefs(data), getPokemons }
-  },
-  beforeRouteEnter(routeTo, routeFrom, next) {
-    next(comp => {
-      comp.getPokemons(parseInt(routeTo.query.page) || 0)
-    }).catch(error => console.log('error', error))
-  },
-  beforeRouteUpdate(routeTo) {
-    this.getPokemons(parseInt(routeTo.query.page) * 10 || 0)
-  }
+  //   return { ...toRefs(data), getPokemons }
+  // },
+  // beforeRouteEnter(routeTo, routeFrom, next) {
+  //   next(comp => {
+  //     comp.getPokemons(parseInt(routeTo.query.page) || 0)
+  //   }).catch(error => console.log('error', error))
+  // },
+  // beforeRouteUpdate(routeTo) {
+  //   this.getPokemons(parseInt(routeTo.query.page) * 10 || 0)
+  // }
 
   // Options API
   // data() {
